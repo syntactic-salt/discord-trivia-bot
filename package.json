@@ -1,0 +1,28 @@
+{
+  "name": "discord-trivia-bot",
+  "version": "0.0.1",
+  "description": "Trivia bot for Discord",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint app/",
+    "start": "node ./app/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/syntactic-salt/discord-trivia-bot.git"
+  },
+  "author": "syntactic-salt",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/syntactic-salt/discord-trivia-bot/issues"
+  },
+  "homepage": "https://github.com/syntactic-salt/discord-trivia-bot#readme",
+  "dependencies": {
+    "discord.js": "11.4.2"
+  },
+  "devDependencies": {
+    "eslint": "5.12.1",
+    "eslint-config-airbnb-base": "13.1.0",
+    "eslint-plugin-import": "2.14.0"
+  }
+}
