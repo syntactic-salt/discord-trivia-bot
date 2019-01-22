@@ -29,7 +29,7 @@ class Prefix {
                         })
                         .catch(() => {
                             this.timeout();
-                            reject('Timed out waiting for a response');
+                            reject(new Error('Timed out waiting for a response'));
                         });
                 })
                 .catch(error => reject(error));
@@ -37,9 +37,9 @@ class Prefix {
     }
 
     setPrefix(prefix) {
-        return DBUtils.updateServerPrefix(prefix, this.message.guild.id).then(() => {
-            return this.message.channel.send(`The Trivia Bot prefix has been updated to \`${prefix}\``);
-        });
+        return DBUtils.updateServerPrefix(prefix, this.message.guild.id).then(() => (
+            this.message.channel.send(`The Trivia Bot prefix has been updated to \`${prefix}\``)
+        ));
     }
 
     setMessage(message) {
@@ -47,7 +47,7 @@ class Prefix {
     }
 
     timeout() {
-        return this.message.channel.send('Prefix configuration for Trivia Bot has timed out')
+        return this.message.channel.send('Prefix configuration for Trivia Bot has timed out');
     }
 }
 

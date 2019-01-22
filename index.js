@@ -2,6 +2,7 @@ const DiscordJS = require('discord.js');
 const Utils = require('./helpers/utilities.class');
 const DBUtils = require('./helpers/database_utilities.class');
 const Prefix = require('./actions/prefix.class');
+const Create = require('./actions/create.class');
 const discord = require('./discord');
 
 const client = new DiscordJS.Client();
@@ -12,6 +13,15 @@ DBUtils.getServers().then((newServers) => {
 }).catch(() => {
     console.error('Failed to cache servers');
     process.exit(1);
+});
+
+let channels = new Map();
+
+DBUtils.getChannels().then((newChannels) => {
+    channels = newChannels;
+}).catch(() => {
+    console.error('Failed to cache channels');
+    process.exit(2);
 });
 
 client.on('ready', () => {
@@ -32,14 +42,21 @@ client.on('message', async (message) => {
         const server = servers.get(message.guild.id);
         const { prefix } = server;
 
-        if (message.content === `${prefix}prefix`) {
+        if (message.content === `${prefix}prefix` && Utils.isAdmin(message.member)) {
             const action = new Prefix(message);
             action.start()
                 .then(async () => {
                     servers = await DBUtils.getServers();
                 })
                 .catch(error => console.warn(error));
-        } else {
+        } else if (message.content === `${prefix}create` && Utils.isAdmin(message.member)) {
+            const action = new Create(message, client.user);
+            action.start()
+                .then(async () => {
+                    channels = await DBUtils.getChannels();
+                })
+                .catch(error => console.warn(error));
+        } else if (channels.has(message.channel)) {
             message.delete();
         }
     }
