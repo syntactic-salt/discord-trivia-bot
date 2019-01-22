@@ -29,34 +29,41 @@ client.on('ready', () => {
 });
 
 client.on('message', async (message) => {
-    if (!servers.has(message.guild.id)) {
+    const {
+        channel,
+        content,
+        guild,
+        member,
+    } = message;
+
+    if (!servers.has(guild.id)) {
         try {
-            await DBUtils.addServer(message.guild);
+            await DBUtils.addServer(guild);
             servers = await DBUtils.getServers();
         } catch (error) {
             console.warn('Failed to update servers cache');
         }
     }
 
-    if (!Utils.isMe(message.member, client.user)) {
-        const server = servers.get(message.guild.id);
+    if (!Utils.isMe(member, client.user)) {
+        const server = servers.get(guild.id);
         const { prefix } = server;
 
-        if (message.content === `${prefix}prefix` && Utils.isAdmin(message.member)) {
+        if (content === `${prefix}prefix` && Utils.isAdmin(member)) {
             const action = new Prefix(message);
             action.start()
                 .then(async () => {
                     servers = await DBUtils.getServers();
                 })
                 .catch(error => console.warn(error));
-        } else if (message.content === `${prefix}create` && Utils.isAdmin(message.member)) {
+        } else if (content === `${prefix}create` && Utils.isAdmin(member)) {
             const action = new Create(message, client.user);
             action.start()
                 .then(async () => {
                     channels = await DBUtils.getChannels();
                 })
                 .catch(error => console.warn(error));
-        } else if (channels.has(message.channel)) {
+        } else if (channels.has(channel)) {
             message.delete();
         }
     }
