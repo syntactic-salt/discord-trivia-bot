@@ -4,8 +4,8 @@
   "description": "Trivia bot for Discord",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint app/",
-    "start": "node ./app/index.js"
+    "lint": "eslint index.js helpers/ actions/",
+    "start": "node ./index.js"
   },
   "repository": {
     "type": "git",
@@ -18,7 +18,8 @@
   },
   "homepage": "https://github.com/syntactic-salt/discord-trivia-bot#readme",
   "dependencies": {
-    "discord.js": "11.4.2"
+    "discord.js": "11.4.2",
+    "mysql": "2.16.0"
   },
   "devDependencies": {
     "eslint": "5.12.1",

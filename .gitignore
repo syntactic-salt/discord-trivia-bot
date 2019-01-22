@@ -1,2 +1,7 @@
+# dev files
 .idea/
 node_modules/
+
+# config files
+database.json
+discord.json
