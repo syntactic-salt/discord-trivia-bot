@@ -84,12 +84,12 @@ class DatabaseUtilities {
         });
     }
 
-    static addChannel(channel) {
+    static addChannel(channel, categoryId) {
         return new Promise((resolve, reject) => {
             const connection = MySQL.createConnection(database);
             connection.query(
                 'INSERT INTO channels SET discord_id = ?, server_discord_id = ?, trivia_category_id = ?',
-                [channel.id, channel.guild.id, 15],
+                [channel.id, channel.guild.id, categoryId],
                 (error, result) => {
                     if (error) {
                         reject(error);
