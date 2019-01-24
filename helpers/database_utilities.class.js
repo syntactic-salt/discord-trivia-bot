@@ -90,13 +90,11 @@ class DatabaseUtilities {
                     if (error) {
                         reject(error);
                     } else {
-                        const stats = result.reduce((acc, current) => {
-                            return {
-                                rounds: acc.rounds + 1,
-                                total: acc.total + current.total_answers,
-                                correct: acc.correct + current.correct_answers
-                            };
-                        }, { total: 0, correct: 0, rounds: 0 });
+                        const stats = result.reduce((acc, current) => ({
+                            rounds: acc.rounds + 1,
+                            total: acc.total + current.total_answers,
+                            correct: acc.correct + current.correct_answers,
+                        }), { total: 0, correct: 0, rounds: 0 });
                         console.log(stats);
                         resolve(stats);
                     }
@@ -163,7 +161,7 @@ class DatabaseUtilities {
                     }
 
                     connection.destroy();
-                }
+                },
             );
         });
     }

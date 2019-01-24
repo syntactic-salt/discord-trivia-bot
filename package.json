@@ -4,7 +4,7 @@
   "description": "Trivia bot for Discord",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint index.js helpers/ actions/",
+    "lint": "eslint index.js helpers/ actions/ services/",
     "start": "node ./index.js"
   },
   "repository": {

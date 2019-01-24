@@ -6,12 +6,12 @@ const numberMap = {
 };
 
 const emojis = {
-   one: '1⃣',
-   two: '2⃣',
-   three: '3⃣',
-   four: '4⃣',
-   left: '⬅',
-   right: '➡',
+    one: '1⃣',
+    two: '2⃣',
+    three: '3⃣',
+    four: '4⃣',
+    left: '⬅',
+    right: '➡',
 };
 
 class MessageWithChoice {
@@ -45,11 +45,11 @@ class MessageWithChoice {
                         this.callbackMap[emojiName](resolve, choices);
                     } else {
                         this.message.channel.send('That wasn\'t one of the choices');
-                        reject()
+                        reject();
                     }
                 })
                 .catch(reject);
-        })
+        });
     }
 
     nextChunk(resolve) {
@@ -98,37 +98,33 @@ class MessageWithChoice {
 
     updateMessageWithChoices(text, choices) {
         return this.sentMessage.clearReactions()
-            .then(() => {
-                return this.sentMessage.edit(text)
-                    .then((message) => {
-                        const reactions = [];
+            .then(() => this.sentMessage.edit(text)
+                .then((message) => {
+                    const reactions = [];
 
-                        if (this.choices[this.currentChunk - 1]) {
-                            reactions.push(emojis.left);
-                        }
+                    if (this.choices[this.currentChunk - 1]) {
+                        reactions.push(emojis.left);
+                    }
 
-                        choices.forEach((choice, index) => reactions.push(emojis[numberMap[index + 1]]));
+                    choices.forEach((choice, index) => reactions.push(emojis[numberMap[index + 1]]));
 
-                        if (this.choices[this.currentChunk + 1]) {
-                            reactions.push(emojis.right);
-                        }
+                    if (this.choices[this.currentChunk + 1]) {
+                        reactions.push(emojis.right);
+                    }
 
-                        reactions.reduce((promise, emoji) => {
-                            return promise.then(() => message.react(emoji));
-                        }, Promise.resolve());
+                    reactions.reduce((promise, emoji) => promise.then(() => message.react(emoji)), Promise.resolve());
 
-                        return message.awaitReactions(
-                            (reaction, user) => this.message.member.id === user.id,
-                            { maxEmojis: 1, time: 60000, errors: ['time'] },
-                        )
-                            .then((reactions) => {
-                                const reaction = reactions.first();
-                                return reaction.emoji.name;
-                            })
-                            .catch((error) => {});
-                    })
-                    .catch((error) => {});
-            });
+                    return message.awaitReactions(
+                        (reaction, user) => this.message.member.id === user.id,
+                        { maxEmojis: 1, time: 60000, errors: ['time'] },
+                    )
+                        .then((reactions) => {
+                            const reaction = reactions.first();
+                            return reaction.emoji.name;
+                        })
+                        .catch((error) => {});
+                })
+                .catch((error) => {}));
     }
 
     sendMessageWithChoices(text, choices) {
@@ -147,9 +143,7 @@ class MessageWithChoice {
                     reactions.push(emojis.right);
                 }
 
-                reactions.reduce((promise, emoji) => {
-                    return promise.then(() => message.react(emoji));
-                }, Promise.resolve());
+                reactions.reduce((promise, emoji) => promise.then(() => message.react(emoji)), Promise.resolve());
 
                 return message.awaitReactions(
                     (reaction, user) => this.message.member.id === user.id,

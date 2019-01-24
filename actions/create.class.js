@@ -42,7 +42,6 @@ class Create {
             channelNameMessage.getResponse()
                 .then(response => resolve(response))
                 .catch(error => reject(error));
-
         });
     }
 

@@ -35,7 +35,7 @@ class Start {
         try {
             const channel = await DBUtils.getChannel(this.channel.id);
             const categories = await TriviaService.getCategories();
-            const category = categories.find((category) => category.id === channel.triviaCategoryId);
+            const category = categories.find(category => category.id === channel.triviaCategoryId);
             const messages = await this.channel.fetchMessages();
             this.roundId = await DBUtils.createRound(this.channel.id);
             messages.deleteAll();
@@ -69,12 +69,10 @@ class Start {
 
                         question.answers.forEach((choice, index) => reactions.push(emojis[index]));
 
-                        reactions.reduce((promise, emoji) => {
-                            return promise.then(() => this.message.react(emoji));
-                        }, Promise.resolve());
+                        reactions.reduce((promise, emoji) => promise.then(() => this.message.react(emoji)), Promise.resolve());
 
                         return this.message.awaitReactions(
-                            (reaction) => Object.values(emojis).includes(reaction.emoji.name),
+                            reaction => Object.values(emojis).includes(reaction.emoji.name),
                             { time: 15000 },
                         )
                             .then((reactions) => {
@@ -99,7 +97,7 @@ class Start {
 
     questionResults(reactions) {
         this.message.clearReactions();
-        let correctAnswer = { index: this.questions[this.currentQuestion].answers.findIndex((answer) => answer.correct) };
+        const correctAnswer = { index: this.questions[this.currentQuestion].answers.findIndex(answer => answer.correct) };
         correctAnswer.text = this.questions[this.currentQuestion].answers[correctAnswer.index].text;
         let resultText = `The correct answer is ${emojis[correctAnswer.index]}, ${correctAnswer.text}\n`;
 
@@ -140,7 +138,7 @@ class Start {
         scores.sort((scoreA, scoreB) => {
             if (scoreA.correct < scoreB.correct) {
                 return -1;
-            } else if (scoreA.correct > scoreB.correct) {
+            } if (scoreA.correct > scoreB.correct) {
                 return 1;
             }
 
@@ -157,7 +155,9 @@ class Start {
         messageText += this.scoreboardText();
 
         this.answerCounts.forEach((count, key) => {
-            DBUtils.createScore({ userId: key, total: count.total, correct: count.correct, roundId: this.roundId });
+            DBUtils.createScore({
+                userId: key, total: count.total, correct: count.correct, roundId: this.roundId,
+            });
         });
 
         this.message.edit(messageText);

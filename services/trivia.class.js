@@ -17,7 +17,7 @@ class TriviaService {
                     categories.sort((categoryA, categoryB) => {
                         if (categoryA.name > categoryB.name) {
                             return 1;
-                        } else if (categoryA.name < categoryB.name) {
+                        } if (categoryA.name < categoryB.name) {
                             return -1;
                         }
 
@@ -44,16 +44,14 @@ class TriviaService {
                     const questions = response.results.map(({ question, correct_answer, incorrect_answers }) => {
                         const text = Buffer.from(question, 'base64').toString();
                         const answers = [{ text: Buffer.from(correct_answer, 'base64').toString(), correct: true }];
-                        answers.push(...incorrect_answers.map((answer) => {
-                            return { text: Buffer.from(answer, 'base64').toString(), correct: false };
-                        }));
+                        answers.push(...incorrect_answers.map(answer => ({ text: Buffer.from(answer, 'base64').toString(), correct: false })));
                         return { text, answers: shuffle(answers) };
                     });
 
                     resolve(shuffle(questions));
-                })
+                });
             }).on('error', reject);
-        })
+        });
     }
 }
 
