@@ -36,7 +36,7 @@ class MessageWithChoice {
             let text = `${this.text}\n`;
 
             for (let index = 0; index < choices.length; index += 1) {
-                text += `\n${emojis[numberMap[index + 1]]} ${choices[index].label}`;
+                text += `\n${emojis[numberMap[index + 1]]} ${choices[index].text}`;
             }
 
             this.sendMessageWithChoices(text, choices)
@@ -59,7 +59,7 @@ class MessageWithChoice {
             let text = `${this.text}\n`;
 
             for (let index = 0; index < choices.length; index += 1) {
-                text += `\n${emojis[numberMap[index + 1]]} ${choices[index].label}`;
+                text += `\n${emojis[numberMap[index + 1]]} ${choices[index].text}`;
             }
 
             this.updateMessageWithChoices(text, choices)
@@ -74,8 +74,26 @@ class MessageWithChoice {
         });
     }
 
-    previousChunk() {
+    previousChunk(resolve) {
+        return new Promise(() => {
+            this.setCurrentChunk(this.currentChunk - 1);
+            const choices = this.choices[this.currentChunk];
+            let text = `${this.text}\n`;
 
+            for (let index = 0; index < choices.length; index += 1) {
+                text += `\n${emojis[numberMap[index + 1]]} ${choices[index].text}`;
+            }
+
+            this.updateMessageWithChoices(text, choices)
+                .then((emojiName) => {
+                    if (this.callbackMap[emojiName]) {
+                        this.callbackMap[emojiName](resolve, choices);
+                    } else {
+                        this.message.channel.send('That wasn\'t one of the choices');
+                    }
+                })
+                .catch();
+        });
     }
 
     updateMessageWithChoices(text, choices) {

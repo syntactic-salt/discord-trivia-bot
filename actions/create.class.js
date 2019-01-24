@@ -25,7 +25,7 @@ class Create {
                 .then((categories) => {
                     const choices = [];
 
-                    categories.forEach(category => choices.push({ label: category.name, returnValue: category.id }));
+                    categories.forEach(category => choices.push({ text: category.name, returnValue: category.id }));
 
                     const triviaCategoryMessage = new MessageWithChoice(this.message, 'Please select a trivia category for the channel.', choices);
                     triviaCategoryMessage.getChoice()

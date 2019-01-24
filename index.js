@@ -3,6 +3,7 @@ const Utils = require('./helpers/utilities.class');
 const DBUtils = require('./helpers/database_utilities.class');
 const Prefix = require('./actions/prefix.class');
 const Create = require('./actions/create.class');
+const Start = require('./actions/start.class');
 const discord = require('./discord');
 
 const client = new DiscordJS.Client();
@@ -49,21 +50,24 @@ client.on('message', async (message) => {
         const server = servers.get(guild.id);
         const { prefix } = server;
 
-        if (content === `${prefix}prefix` && Utils.isAdmin(member)) {
+        if (content === `${prefix}prefix` && Utils.isAdmin(member) && !channels.has(channel.id)) {
             const action = new Prefix(message);
             action.start()
                 .then(async () => {
                     servers = await DBUtils.getServers();
                 })
                 .catch(error => console.warn(error));
-        } else if (content === `${prefix}create` && Utils.isAdmin(member)) {
+        } else if (content === `${prefix}create` && Utils.isAdmin(member) && !channels.has(channel.id)) {
             const action = new Create(message, client.user);
             action.start()
                 .then(async () => {
                     channels = await DBUtils.getChannels();
                 })
                 .catch(error => console.warn(error));
-        } else if (channels.has(channel)) {
+        } else if (content === `${prefix}start` && channels.has(channel.id)) {
+            const action = new Start(channel);
+            action.start(channel);
+        } else if (channels.has(channel.id)) {
             message.delete();
         }
     }

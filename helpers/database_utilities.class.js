@@ -61,6 +61,44 @@ class DatabaseUtilities {
         });
     }
 
+    static createScore(score) {
+        return new Promise((resolve, reject) => {
+            const connection = MySQL.createConnection(database);
+            connection.query(
+                'INSERT INTO scores SET member_discord_id = ?, round_id = ?, total_answers = ?, correct_answers = ?',
+                [score.userId, score.roundId, score.total, score.correct],
+                (error, result) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve(result);
+                    }
+
+                    connection.destroy();
+                },
+            );
+        });
+    }
+
+    static createRound(channelId) {
+        return new Promise((resolve, reject) => {
+            const connection = MySQL.createConnection(database);
+            connection.query(
+                'INSERT INTO rounds SET channel_discord_id = ?',
+                [channelId],
+                (error, result) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve(result.insertId);
+                    }
+
+                    connection.destroy();
+                },
+            );
+        });
+    }
+
     static getChannels() {
         return new Promise((resolve, reject) => {
             const connection = MySQL.createConnection(database);
@@ -80,6 +118,25 @@ class DatabaseUtilities {
 
                     connection.destroy();
                 },
+            );
+        });
+    }
+
+    static getChannel(discord_id) {
+        return new Promise((resolve, reject) => {
+            const connection = MySQL.createConnection(database);
+            connection.query(
+                'SELECT * FROM channels WHERE discord_id = ?',
+                [discord_id],
+                (error, results) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve({ serverId: results[0].server_discord_id, triviaCategoryId: results[0].trivia_category_id });
+                    }
+
+                    connection.destroy();
+                }
             );
         });
     }

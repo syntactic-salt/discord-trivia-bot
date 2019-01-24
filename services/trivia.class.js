@@ -1,4 +1,5 @@
 const https = require('https');
+const shuffle = require('../helpers/shuffle_array');
 
 class TriviaService {
     static getCategories() {
@@ -25,8 +26,34 @@ class TriviaService {
 
                     resolve(categories);
                 });
-            }).on("error", error => reject(error));
+            }).on('error', reject);
         });
+    }
+
+    static getQuestions(categoryId) {
+        return new Promise((resolve, reject) => {
+            https.get(`https://opentdb.com/api.php?amount=20&category=${categoryId}&type=multiple&encode=base64`, (resp) => {
+                let data = '';
+
+                resp.on('data', (chunk) => {
+                    data += chunk;
+                });
+
+                resp.on('end', () => {
+                    const response = JSON.parse(data);
+                    const questions = response.results.map(({ question, correct_answer, incorrect_answers }) => {
+                        const text = Buffer.from(question, 'base64').toString();
+                        const answers = [{ text: Buffer.from(correct_answer, 'base64').toString(), correct: true }];
+                        answers.push(...incorrect_answers.map((answer) => {
+                            return { text: Buffer.from(answer, 'base64').toString(), correct: false };
+                        }));
+                        return { text, answers: shuffle(answers) };
+                    });
+
+                    resolve(shuffle(questions));
+                })
+            }).on('error', reject);
+        })
     }
 }
 
