@@ -4,6 +4,7 @@ const DBUtils = require('./helpers/database_utilities.class');
 const Prefix = require('./actions/prefix.class');
 const Create = require('./actions/create.class');
 const Start = require('./actions/start.class');
+const Stats = require('./actions/stats.class');
 const discord = require('./discord');
 
 const client = new DiscordJS.Client();
@@ -67,6 +68,9 @@ client.on('message', async (message) => {
         } else if (content === `${prefix}start` && channels.has(channel.id)) {
             const action = new Start(channel);
             action.start(channel);
+        } else if (content === `${prefix}stats` && !channels.has(channel.id)) {
+            const action = new Stats(message);
+            action.start();
         } else if (channels.has(channel.id)) {
             message.delete();
         }
