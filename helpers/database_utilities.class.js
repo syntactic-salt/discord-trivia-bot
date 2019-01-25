@@ -95,7 +95,6 @@ class DatabaseUtilities {
                             total: acc.total + current.total_answers,
                             correct: acc.correct + current.correct_answers,
                         }), { total: 0, correct: 0, rounds: 0 });
-                        console.log(stats);
                         resolve(stats);
                     }
 
