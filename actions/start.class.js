@@ -76,17 +76,24 @@ class Start {
                             { time: 15000 },
                         )
                             .then((reactions) => {
-                                const userReactions = [];
+                                const userReactions = new Map();
+                                const cheaters = {};
 
                                 reactions.forEach((reaction) => {
                                     reaction.users.forEach((user) => {
                                         if (!user.bot) {
-                                            userReactions.push({ user, emoji: reaction.emoji.name });
+                                            if (userReactions.has(user.id)) {
+                                                cheaters[user.id] = true;
+                                            } else {
+                                                userReactions.set(user.id, {user, emoji: reaction.emoji.name});
+                                            }
                                         }
                                     });
                                 });
 
-                                this.questionResults(userReactions);
+                                Object.keys(cheaters).forEach(userId => userReactions.delete(userId));
+
+                                this.questionResults(Array.from(userReactions.values()));
                             })
                             .catch(console.error);
                     })
