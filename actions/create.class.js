@@ -49,7 +49,7 @@ class Create {
         return new Promise((resolve, reject) => {
             this.message.guild.createChannel(name, 'text', [{ id: this.bot.id }])
                 .then((channel) => {
-                    DBUtils.addChannel(channel, categoryId)
+                    DBUtils.addChannel(channel.id, channel.guild.id, categoryId)
                         .then(() => {
                             this.message.channel.send(
                                 `<#${channel.id}> has been created. Head there to start a round of trivia.`,

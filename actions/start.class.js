@@ -37,7 +37,7 @@ class Start {
             const categories = await TriviaService.getCategories();
             const category = categories.find(category => category.id === channel.triviaCategoryId);
             const messages = await this.channel.fetchMessages();
-            this.roundId = await DBUtils.createRound(this.channel.id);
+            this.roundId = await DBUtils.addRound(this.channel.id);
             messages.deleteAll();
             this.message = await this.channel.send(`Thanks for starting a round of trivia.\n\nThe round will end after 20 questions. Questions will be in the category: ${category.name}. You will have 15 seconds to answer each question. All questions are multiple choice. You can answer a question by using the reaction that corresponds to your choice\n\nThe round will start in 1 minute.`);
             this.questions = await TriviaService.getQuestions(category.id);
@@ -162,7 +162,7 @@ class Start {
         messageText += this.scoreboardText();
 
         this.answerCounts.forEach((count, key) => {
-            DBUtils.createScore({
+            DBUtils.addScore({
                 userId: key, total: count.total, correct: count.correct, roundId: this.roundId,
             });
         });

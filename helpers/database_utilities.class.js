@@ -3,12 +3,17 @@ const defaults = require('../defaults');
 const database = require('../database');
 
 class DatabaseUtilities {
-    static addServer(guild) {
+    /**
+     * Add a server record to the database
+     * @param {string} serverId - The Discord ID for the Discord server
+     * @returns {Promise<any>}
+     */
+    static addServer(serverId) {
         return new Promise((resolve, reject) => {
             const connection = MySQL.createConnection(database);
             connection.query(
                 'INSERT INTO servers SET discord_id = ?, prefix = ?',
-                [guild.id, defaults.prefix],
+                [serverId, defaults.prefix],
                 (error, result) => {
                     if (error) {
                         reject(error);
@@ -22,6 +27,12 @@ class DatabaseUtilities {
         });
     }
 
+    /**
+     * Updates the prefix for a server record
+     * @param {string} prefix
+     * @param {string} serverId - The Discord server ID
+     * @returns {Promise<any>}
+     */
     static updateServerPrefix(prefix, serverId) {
         return new Promise((resolve, reject) => {
             const connection = MySQL.createConnection(database);
@@ -41,6 +52,10 @@ class DatabaseUtilities {
         });
     }
 
+    /**
+     * Gets a collection of all servers in the database
+     * @returns {Promise<any>}
+     */
     static getServers() {
         return new Promise((resolve, reject) => {
             const connection = MySQL.createConnection(database);
@@ -61,7 +76,12 @@ class DatabaseUtilities {
         });
     }
 
-    static createScore(score) {
+    /**
+     * Adds a score record to the database
+     * @param {Object} score
+     * @returns {Promise<any>}
+     */
+    static addScore(score) {
         return new Promise((resolve, reject) => {
             const connection = MySQL.createConnection(database);
             connection.query(
@@ -80,6 +100,11 @@ class DatabaseUtilities {
         });
     }
 
+    /**
+     * Get statistics for a user
+     * @param {string} userId - The Discord Id for the user
+     * @returns {Promise<any>}
+     */
     static getStatsForUser(userId) {
         return new Promise((resolve, reject) => {
             const connection = MySQL.createConnection(database);
@@ -104,7 +129,12 @@ class DatabaseUtilities {
         });
     }
 
-    static createRound(channelId) {
+    /**
+     * Adds a round record to the database
+     * @param {string} channelId - The Discord channel ID
+     * @returns {Promise<any>}
+     */
+    static addRound(channelId) {
         return new Promise((resolve, reject) => {
             const connection = MySQL.createConnection(database);
             connection.query(
@@ -123,6 +153,10 @@ class DatabaseUtilities {
         });
     }
 
+    /**
+     * Gets all the channels in the database
+     * @returns {Promise<any>}
+     */
     static getChannels() {
         return new Promise((resolve, reject) => {
             const connection = MySQL.createConnection(database);
@@ -146,12 +180,17 @@ class DatabaseUtilities {
         });
     }
 
-    static getChannel(discord_id) {
+    /**
+     * Gets a channel from the database
+     * @param {string} channelId - The Discord channel ID
+     * @returns {Promise<any>}
+     */
+    static getChannel(channelId) {
         return new Promise((resolve, reject) => {
             const connection = MySQL.createConnection(database);
             connection.query(
                 'SELECT * FROM channels WHERE discord_id = ?',
-                [discord_id],
+                [channelId],
                 (error, results) => {
                     if (error) {
                         reject(error);
@@ -165,12 +204,19 @@ class DatabaseUtilities {
         });
     }
 
-    static addChannel(channel, categoryId) {
+    /**
+     * Adds a channel record to the database
+     * @param {string} channelId - The Discord channel ID
+     * @param {string} serverId - The Discord server ID
+     * @param {number} categoryId - The category ID for OpenTDB
+     * @returns {Promise<any>}
+     */
+    static addChannel(channelId, serverId, categoryId) {
         return new Promise((resolve, reject) => {
             const connection = MySQL.createConnection(database);
             connection.query(
                 'INSERT INTO channels SET discord_id = ?, server_discord_id = ?, trivia_category_id = ?',
-                [channel.id, channel.guild.id, categoryId],
+                [channelId, serverId, categoryId],
                 (error, result) => {
                     if (error) {
                         reject(error);

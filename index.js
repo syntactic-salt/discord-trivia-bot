@@ -40,7 +40,7 @@ client.on('message', async (message) => {
 
     if (!servers.has(guild.id)) {
         try {
-            await DBUtils.addServer(guild);
+            await DBUtils.addServer(guild.id);
             servers = await DBUtils.getServers();
         } catch (error) {
             console.warn('Failed to update servers cache');
@@ -78,5 +78,7 @@ client.on('message', async (message) => {
 });
 
 client.on('disconnect', () => client.login(discord.token));
+
+client.on('error', console.error);
 
 client.login(discord.token);
