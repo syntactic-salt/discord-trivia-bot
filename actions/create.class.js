@@ -15,34 +15,34 @@ class Create {
             const categoryId = await this.askForCategory();
             await this.createChannel(channelName, categoryId);
         } catch (error) {
-            throw error;
+            console.warn('Channel was not created');
         }
     }
 
     askForCategory() {
-        return new Promise((resolve, reject) => {
-            TriviaService.getCategories()
-                .then((categories) => {
-                    const choices = [];
+        return TriviaService.getCategories()
+            .then((categories) => {
+                const choices = [];
 
-                    categories.forEach(category => choices.push({ text: category.name, returnValue: category.id }));
+                categories.forEach(category => choices.push({ text: category.name, returnValue: category.id }));
 
-                    const triviaCategoryMessage = new MessageWithChoice(this.message, 'Please select a trivia category for the channel.', choices);
-                    triviaCategoryMessage.getChoice()
-                        .then(resolve)
-                        .catch(reject);
-                })
-                .catch(reject);
-        });
+                const triviaCategoryMessage = new MessageWithChoice(
+                    this.message,
+                    'Please select a trivia category for the channel.',
+                    choices,
+                );
+
+                return triviaCategoryMessage.getChoice();
+            });
     }
 
     askForChannelName() {
-        return new Promise((resolve, reject) => {
-            const channelNameMessage = new MessageWithResponse(this.message, 'Trivia Bot will create a new channel. Enter a name for the channel.');
-            channelNameMessage.getResponse()
-                .then(response => resolve(response))
-                .catch(error => reject(error));
-        });
+        const channelNameMessage = new MessageWithResponse(
+            this.message,
+            'Trivia Bot will create a new channel. Enter a name for the channel.',
+        );
+
+        return channelNameMessage.getResponse();
     }
 
     createChannel(name, categoryId) {
@@ -60,10 +60,6 @@ class Create {
                 })
                 .catch(error => reject(error));
         });
-    }
-
-    timeout() {
-        return this.message.channel.send('I don\'t have all day. Why don\'t you try again when you\'re ready.');
     }
 }
 

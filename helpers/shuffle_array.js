@@ -1,5 +1,6 @@
-const shuffle = function shuffle([...array]) {
-    let currentIndex = array.length;
+const shuffle = function shuffle(array) {
+    const arrayClone = [...array];
+    let currentIndex = arrayClone.length;
     let temporaryValue;
     let randomIndex;
 
@@ -10,12 +11,12 @@ const shuffle = function shuffle([...array]) {
         currentIndex -= 1;
 
         // And swap it with the current element.
-        temporaryValue = array[currentIndex];
-        array[currentIndex] = array[randomIndex];
-        array[randomIndex] = temporaryValue;
+        temporaryValue = arrayClone[currentIndex];
+        arrayClone[currentIndex] = arrayClone[randomIndex];
+        arrayClone[randomIndex] = temporaryValue;
     }
 
-    return array;
+    return arrayClone;
 };
 
 module.exports = shuffle;

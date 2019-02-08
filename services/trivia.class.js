@@ -32,25 +32,34 @@ class TriviaService {
 
     static getQuestions(categoryId) {
         return new Promise((resolve, reject) => {
-            https.get(`https://opentdb.com/api.php?amount=20&category=${categoryId}&type=multiple&encode=base64`, (resp) => {
-                let data = '';
+            https.get(
+                `https://opentdb.com/api.php?amount=20&category=${categoryId}&type=multiple&encode=base64`,
+                (resp) => {
+                    let data = '';
 
-                resp.on('data', (chunk) => {
-                    data += chunk;
-                });
-
-                resp.on('end', () => {
-                    const response = JSON.parse(data);
-                    const questions = response.results.map(({ question, correct_answer, incorrect_answers }) => {
-                        const text = Buffer.from(question, 'base64').toString();
-                        const answers = [{ text: Buffer.from(correct_answer, 'base64').toString(), correct: true }];
-                        answers.push(...incorrect_answers.map(answer => ({ text: Buffer.from(answer, 'base64').toString(), correct: false })));
-                        return { text, answers: shuffle(answers) };
+                    resp.on('data', (chunk) => {
+                        data += chunk;
                     });
 
-                    resolve(shuffle(questions));
-                });
-            }).on('error', reject);
+                    resp.on('end', () => {
+                        const response = JSON.parse(data);
+                        // eslint-disable-next-line camelcase
+                        const questions = response.results.map(({ question, correct_answer, incorrect_answers }) => {
+                            const text = Buffer.from(question, 'base64').toString();
+                            const answers = [{ text: Buffer.from(correct_answer, 'base64').toString(), correct: true }];
+                            answers.push(
+                                ...incorrect_answers.map(
+                                    answer => ({ text: Buffer.from(answer, 'base64').toString(), correct: false }),
+                                ),
+                            );
+                            return { text, answers: shuffle(answers) };
+                        });
+
+                        resolve(shuffle(questions));
+                    });
+                },
+            )
+                .on('error', reject);
         });
     }
 }

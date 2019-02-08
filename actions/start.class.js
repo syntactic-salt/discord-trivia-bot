@@ -35,10 +35,11 @@ class Start {
         try {
             const channel = await DBUtils.getChannel(this.channel.id);
             const categories = await TriviaService.getCategories();
-            const category = categories.find(category => category.id === channel.triviaCategoryId);
+            const category = categories.find(({ id }) => id === channel.triviaCategoryId);
             const messages = await this.channel.fetchMessages();
             this.roundId = await DBUtils.addRound(this.channel.id);
             messages.deleteAll();
+            // eslint-disable-next-line max-len
             this.message = await this.channel.send(`Thanks for starting a round of trivia.\n\nThe round will end after 20 questions. Questions will be in the category: ${category.name}. You will have 15 seconds to answer each question. All questions are multiple choice. You can answer a question by using the reaction that corresponds to your choice\n\nThe round will start in 1 minute.`);
             this.questions = await TriviaService.getQuestions(category.id);
             this.startQuestions();
@@ -65,11 +66,14 @@ class Start {
             .then(() => {
                 this.message.edit(text)
                     .then(() => {
-                        const reactions = [];
+                        const reactWith = [];
 
-                        question.answers.forEach((choice, index) => reactions.push(emojis[index]));
+                        question.answers.forEach((choice, index) => reactWith.push(emojis[index]));
 
-                        reactions.reduce((promise, emoji) => promise.then(() => this.message.react(emoji)), Promise.resolve());
+                        reactWith.reduce(
+                            (promise, emoji) => promise.then(() => this.message.react(emoji)),
+                            Promise.resolve(),
+                        );
 
                         return this.message.awaitReactions(
                             reaction => Object.values(emojis).includes(reaction.emoji.name),
@@ -85,7 +89,7 @@ class Start {
                                             if (userReactions.has(user.id)) {
                                                 cheaters[user.id] = true;
                                             } else {
-                                                userReactions.set(user.id, {user, emoji: reaction.emoji.name});
+                                                userReactions.set(user.id, { user, emoji: reaction.emoji.name });
                                             }
                                         }
                                     });
@@ -104,7 +108,9 @@ class Start {
 
     questionResults(reactions) {
         this.message.clearReactions();
-        const correctAnswer = { index: this.questions[this.currentQuestion].answers.findIndex(answer => answer.correct) };
+        const correctAnswer = {
+            index: this.questions[this.currentQuestion].answers.findIndex(answer => answer.correct),
+        };
         correctAnswer.text = this.questions[this.currentQuestion].answers[correctAnswer.index].text;
         let resultText = `The correct answer is ${emojis[correctAnswer.index]}, ${correctAnswer.text}\n`;
 

@@ -63,8 +63,7 @@ client.on('message', async (message) => {
             action.start()
                 .then(async () => {
                     channels = await DBUtils.getChannels();
-                })
-                .catch(error => console.warn(error));
+                });
         } else if (content === `${prefix}start` && channels.has(channel.id)) {
             const action = new Start(channel);
             action.start(channel);

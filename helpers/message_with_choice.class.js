@@ -14,18 +14,29 @@ const emojis = {
     right: '➡',
 };
 
+const getChunks = function createChunksOfChoices(choices) {
+    const choiceChunks = [];
+    const chunkSize = 4;
+
+    for (let index = 0; index < choices.length; index += chunkSize) {
+        choiceChunks.push(choices.slice(index, index + chunkSize));
+    }
+
+    return choiceChunks;
+};
+
 class MessageWithChoice {
     constructor(message, text, choices) {
         this.message = message;
         this.text = text;
-        this.choices = this.getChunks(choices);
+        this.choices = getChunks(choices);
         this.currentChunk = 0;
         this.callbackMap = {
             [emojis.left]: this.previousChunk.bind(this),
-            [emojis.one]: (resolve, choices) => resolve(choices[0].returnValue),
-            [emojis.two]: (resolve, choices) => resolve(choices[1].returnValue),
-            [emojis.three]: (resolve, choices) => resolve(choices[2].returnValue),
-            [emojis.four]: (resolve, choices) => resolve(choices[3].returnValue),
+            [emojis.one]: (resolve, chunk) => resolve(chunk[0].returnValue),
+            [emojis.two]: (resolve, chunk) => resolve(chunk[1].returnValue),
+            [emojis.three]: (resolve, chunk) => resolve(chunk[2].returnValue),
+            [emojis.four]: (resolve, chunk) => resolve(chunk[3].returnValue),
             [emojis.right]: this.nextChunk.bind(this),
         };
     }
@@ -92,7 +103,7 @@ class MessageWithChoice {
                         this.message.channel.send('That wasn\'t one of the choices');
                     }
                 })
-                .catch();
+                .catch(error => console.error(error));
         });
     }
 
@@ -100,19 +111,19 @@ class MessageWithChoice {
         return this.sentMessage.clearReactions()
             .then(() => this.sentMessage.edit(text)
                 .then((message) => {
-                    const reactions = [];
+                    const reactWith = [];
 
                     if (this.choices[this.currentChunk - 1]) {
-                        reactions.push(emojis.left);
+                        reactWith.push(emojis.left);
                     }
 
-                    choices.forEach((choice, index) => reactions.push(emojis[numberMap[index + 1]]));
+                    choices.forEach((choice, index) => reactWith.push(emojis[numberMap[index + 1]]));
 
                     if (this.choices[this.currentChunk + 1]) {
-                        reactions.push(emojis.right);
+                        reactWith.push(emojis.right);
                     }
 
-                    reactions.reduce((promise, emoji) => promise.then(() => message.react(emoji)), Promise.resolve());
+                    reactWith.reduce((promise, emoji) => promise.then(() => message.react(emoji)), Promise.resolve());
 
                     return message.awaitReactions(
                         (reaction, user) => this.message.member.id === user.id,
@@ -122,28 +133,28 @@ class MessageWithChoice {
                             const reaction = reactions.first();
                             return reaction.emoji.name;
                         })
-                        .catch((error) => {});
+                        .catch(console.error);
                 })
-                .catch((error) => {}));
+                .catch(console.error));
     }
 
     sendMessageWithChoices(text, choices) {
         return this.message.channel.send(text)
             .then((message) => {
                 this.sentMessage = message;
-                const reactions = [];
+                const reactWith = [];
 
                 if (this.choices[this.currentChunk - 1]) {
-                    reactions.push(emojis.left);
+                    reactWith.push(emojis.left);
                 }
 
-                choices.forEach((choice, index) => reactions.push(emojis[numberMap[index + 1]]));
+                choices.forEach((choice, index) => reactWith.push(emojis[numberMap[index + 1]]));
 
                 if (this.choices[this.currentChunk + 1]) {
-                    reactions.push(emojis.right);
+                    reactWith.push(emojis.right);
                 }
 
-                reactions.reduce((promise, emoji) => promise.then(() => message.react(emoji)), Promise.resolve());
+                reactWith.reduce((promise, emoji) => promise.then(() => message.react(emoji)), Promise.resolve());
 
                 return message.awaitReactions(
                     (reaction, user) => this.message.member.id === user.id,
@@ -153,20 +164,9 @@ class MessageWithChoice {
                         const reaction = reactions.first();
                         return reaction.emoji.name;
                     })
-                    .catch((error) => {});
+                    .catch(error => console.error(error));
             })
-            .catch((error) => {});
-    }
-
-    getChunks(choices) {
-        const choiceChunks = [];
-        const chunkSize = 4;
-
-        for (let index = 0; index < choices.length; index += chunkSize) {
-            choiceChunks.push(choices.slice(index, index + chunkSize));
-        }
-
-        return choiceChunks;
+            .catch(error => console.error(error));
     }
 
     setCurrentChunk(newChunk) {

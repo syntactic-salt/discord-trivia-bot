@@ -195,7 +195,10 @@ class DatabaseUtilities {
                     if (error) {
                         reject(error);
                     } else {
-                        resolve({ serverId: results[0].server_discord_id, triviaCategoryId: results[0].trivia_category_id });
+                        resolve({
+                            serverId: results[0].server_discord_id,
+                            triviaCategoryId: results[0].trivia_category_id,
+                        });
                     }
 
                     connection.destroy();

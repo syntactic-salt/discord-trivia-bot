@@ -8,6 +8,7 @@ class Stats {
     async start() {
         const { member, channel } = this.message;
         const stats = await DBUtils.getStatsForUser(member.id);
+        // eslint-disable-next-line max-len
         const messageText = `Trivia stats for <@${member.id}>\n\nRounds Played: ${stats.rounds}\nTotal Questions Answered: ${stats.total}\nTotal Correct Answers: ${stats.correct}`;
         return channel.send(messageText);
     }
