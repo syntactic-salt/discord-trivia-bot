@@ -64,47 +64,41 @@ class MessageWithChoice {
     }
 
     nextChunk(resolve) {
-        return new Promise(() => {
-            this.setCurrentChunk(this.currentChunk + 1);
-            const choices = this.choices[this.currentChunk];
-            let text = `${this.text}\n`;
+        this.setCurrentChunk(this.currentChunk + 1);
+        const choices = this.choices[this.currentChunk];
+        let text = `${this.text}\n`;
 
-            for (let index = 0; index < choices.length; index += 1) {
-                text += `\n${emojis[numberMap[index + 1]]} ${choices[index].text}`;
-            }
+        for (let index = 0; index < choices.length; index += 1) {
+            text += `\n${emojis[numberMap[index + 1]]} ${choices[index].text}`;
+        }
 
-            this.updateMessageWithChoices(text, choices)
-                .then((emojiName) => {
-                    if (this.callbackMap[emojiName]) {
-                        this.callbackMap[emojiName](resolve, choices);
-                    } else {
-                        this.message.channel.send('That wasn\'t one of the choices');
-                    }
-                })
-                .catch();
-        });
+        this.updateMessageWithChoices(text, choices)
+            .then((emojiName) => {
+                if (this.callbackMap[emojiName]) {
+                    this.callbackMap[emojiName](resolve, choices);
+                } else {
+                    this.message.channel.send('That wasn\'t one of the choices');
+                }
+            });
     }
 
     previousChunk(resolve) {
-        return new Promise(() => {
-            this.setCurrentChunk(this.currentChunk - 1);
-            const choices = this.choices[this.currentChunk];
-            let text = `${this.text}\n`;
+        this.setCurrentChunk(this.currentChunk - 1);
+        const choices = this.choices[this.currentChunk];
+        let text = `${this.text}\n`;
 
-            for (let index = 0; index < choices.length; index += 1) {
-                text += `\n${emojis[numberMap[index + 1]]} ${choices[index].text}`;
-            }
+        for (let index = 0; index < choices.length; index += 1) {
+            text += `\n${emojis[numberMap[index + 1]]} ${choices[index].text}`;
+        }
 
-            this.updateMessageWithChoices(text, choices)
-                .then((emojiName) => {
-                    if (this.callbackMap[emojiName]) {
-                        this.callbackMap[emojiName](resolve, choices);
-                    } else {
-                        this.message.channel.send('That wasn\'t one of the choices');
-                    }
-                })
-                .catch(error => console.error(error));
-        });
+        this.updateMessageWithChoices(text, choices)
+            .then((emojiName) => {
+                if (this.callbackMap[emojiName]) {
+                    this.callbackMap[emojiName](resolve, choices);
+                } else {
+                    this.message.channel.send('That wasn\'t one of the choices');
+                }
+            });
     }
 
     updateMessageWithChoices(text, choices) {
@@ -132,10 +126,8 @@ class MessageWithChoice {
                         .then((reactions) => {
                             const reaction = reactions.first();
                             return reaction.emoji.name;
-                        })
-                        .catch(console.error);
-                })
-                .catch(console.error));
+                        });
+                }));
     }
 
     sendMessageWithChoices(text, choices) {
@@ -163,10 +155,8 @@ class MessageWithChoice {
                     .then((reactions) => {
                         const reaction = reactions.first();
                         return reaction.emoji.name;
-                    })
-                    .catch(error => console.error(error));
-            })
-            .catch(error => console.error(error));
+                    });
+            });
     }
 
     setCurrentChunk(newChunk) {

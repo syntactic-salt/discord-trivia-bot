@@ -26,6 +26,7 @@ class Start {
     async start() {
         try {
             await this.initializeChannel();
+            this.startQuestions();
         } catch (error) {
             throw error;
         }
@@ -42,9 +43,10 @@ class Start {
             // eslint-disable-next-line max-len
             this.message = await this.channel.send(`Thanks for starting a round of trivia.\n\nThe round will end after 20 questions. Questions will be in the category: ${category.name}. You will have 15 seconds to answer each question. All questions are multiple choice. You can answer a question by using the reaction that corresponds to your choice\n\nThe round will start in 1 minute.`);
             this.questions = await TriviaService.getQuestions(category.id);
-            this.startQuestions();
+            return Promise.resolve();
         } catch (error) {
-            console.error(error);
+            console.error('There was an error initializing a channel for a round of trivia.');
+            throw new Error('Error initializing a channel for a round of trivia');
         }
     }
 
@@ -63,47 +65,42 @@ class Start {
         }
 
         return this.message.clearReactions()
-            .then(() => {
-                this.message.edit(text)
-                    .then(() => {
-                        const reactWith = [];
+            .then(() => this.message.edit(text)
+                .then(() => {
+                    const reactWith = [];
 
-                        question.answers.forEach((choice, index) => reactWith.push(emojis[index]));
+                    question.answers.forEach((choice, index) => reactWith.push(emojis[index]));
 
-                        reactWith.reduce(
-                            (promise, emoji) => promise.then(() => this.message.react(emoji)),
-                            Promise.resolve(),
-                        );
+                    reactWith.reduce(
+                        (promise, emoji) => promise.then(() => this.message.react(emoji)),
+                        Promise.resolve(),
+                    );
 
-                        return this.message.awaitReactions(
-                            reaction => Object.values(emojis).includes(reaction.emoji.name),
-                            { time: 15000 },
-                        )
-                            .then((reactions) => {
-                                const userReactions = new Map();
-                                const cheaters = {};
+                    return this.message.awaitReactions(
+                        reaction => Object.values(emojis).includes(reaction.emoji.name),
+                        { time: 15000 },
+                    )
+                        .then((reactions) => {
+                            const userReactions = new Map();
+                            const cheaters = {};
 
-                                reactions.forEach((reaction) => {
-                                    reaction.users.forEach((user) => {
-                                        if (!user.bot) {
-                                            if (userReactions.has(user.id)) {
-                                                cheaters[user.id] = true;
-                                            } else {
-                                                userReactions.set(user.id, { user, emoji: reaction.emoji.name });
-                                            }
+                            reactions.forEach((reaction) => {
+                                reaction.users.forEach((user) => {
+                                    if (!user.bot) {
+                                        if (userReactions.has(user.id)) {
+                                            cheaters[user.id] = true;
+                                        } else {
+                                            userReactions.set(user.id, { user, emoji: reaction.emoji.name });
                                         }
-                                    });
+                                    }
                                 });
+                            });
 
-                                Object.keys(cheaters).forEach(userId => userReactions.delete(userId));
+                            Object.keys(cheaters).forEach(userId => userReactions.delete(userId));
 
-                                this.questionResults(Array.from(userReactions.values()));
-                            })
-                            .catch(console.error);
-                    })
-                    .catch(console.error);
-            })
-            .catch(console.error);
+                            return this.questionResults(Array.from(userReactions.values()));
+                        });
+                }));
     }
 
     questionResults(reactions) {
@@ -142,7 +139,7 @@ class Start {
         }
 
         resultText += this.scoreboardText();
-        this.message.edit(resultText);
+        return this.message.edit(resultText);
     }
 
     scoreboardText() {

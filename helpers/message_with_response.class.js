@@ -1,11 +1,10 @@
 class MessageWithResponse {
-    constructor(message, text) {
+    constructor(message) {
         this.message = message;
-        this.text = text;
     }
 
-    getResponse() {
-        return this.message.channel.send(this.text)
+    getResponse(messageText) {
+        return this.message.channel.send(messageText)
             .then(() => (
                 this.message.channel.awaitMessages(
                     message => message.member.id === this.message.member.id,

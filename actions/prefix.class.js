@@ -1,4 +1,5 @@
 const DBUtils = require('../helpers/database_utilities.class');
+const MessageWithResponse = require('../helpers/message_with_response.class');
 
 class Prefix {
     constructor(message) {
@@ -8,46 +9,16 @@ class Prefix {
     async start() {
         try {
             const prefix = await this.askForPrefix();
-            await this.setPrefix(prefix);
+            await DBUtils.updateServerPrefix(prefix, this.message.guild.id);
+            this.message.channel.send(`The Trivia Bot prefix has been updated to \`${prefix}\``);
         } catch (error) {
-            throw error;
+            console.warn('There was an error while updating the bot prefix.');
         }
     }
 
     askForPrefix() {
-        return new Promise((resolve, reject) => {
-            const { channel, member } = this.message;
-            channel.send('Enter the new Trivia Bot prefix')
-                .then(() => {
-                    channel.awaitMessages(
-                        message => message.member.id === member.id,
-                        { max: 1, time: 60000, errors: ['time'] },
-                    )
-                        .then((messages) => {
-                            const message = messages.first();
-                            resolve(message.content);
-                        })
-                        .catch(() => {
-                            this.timeout();
-                            reject(new Error('Timed out waiting for a response'));
-                        });
-                })
-                .catch(error => reject(error));
-        });
-    }
-
-    setPrefix(prefix) {
-        return DBUtils.updateServerPrefix(prefix, this.message.guild.id).then(() => (
-            this.message.channel.send(`The Trivia Bot prefix has been updated to \`${prefix}\``)
-        ));
-    }
-
-    setMessage(message) {
-        this.message = message;
-    }
-
-    timeout() {
-        return this.message.channel.send('Prefix configuration for Trivia Bot has timed out');
+        const prefixMessage = new MessageWithResponse(this.message);
+        return prefixMessage.getResponse('Enter the new Trivia Bot prefix');
     }
 }
 

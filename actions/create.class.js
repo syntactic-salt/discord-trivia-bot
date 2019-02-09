@@ -13,9 +13,12 @@ class Create {
         try {
             const channelName = await this.askForChannelName();
             const categoryId = await this.askForCategory();
-            await this.createChannel(channelName, categoryId);
+            const discordChannel = await this.createChannel(channelName, categoryId);
+            this.message.channel.send(
+                `<#${discordChannel.id}> has been created. Head there to start a round of trivia.`,
+            );
         } catch (error) {
-            console.warn('Channel was not created');
+            console.warn('There was an error while creating a new trivia channel.');
         }
     }
 
@@ -37,29 +40,13 @@ class Create {
     }
 
     askForChannelName() {
-        const channelNameMessage = new MessageWithResponse(
-            this.message,
-            'Trivia Bot will create a new channel. Enter a name for the channel.',
-        );
-
-        return channelNameMessage.getResponse();
+        const channelNameMessage = new MessageWithResponse(this.message);
+        return channelNameMessage.getResponse('Trivia Bot will create a new channel. Enter a name for the channel.');
     }
 
     createChannel(name, categoryId) {
-        return new Promise((resolve, reject) => {
-            this.message.guild.createChannel(name, 'text', [{ id: this.bot.id }])
-                .then((channel) => {
-                    DBUtils.addChannel(channel.id, channel.guild.id, categoryId)
-                        .then(() => {
-                            this.message.channel.send(
-                                `<#${channel.id}> has been created. Head there to start a round of trivia.`,
-                            );
-                            resolve(channel);
-                        })
-                        .catch(error => reject(error));
-                })
-                .catch(error => reject(error));
-        });
+        return this.message.guild.createChannel(name, 'text', [{ id: this.bot.id }])
+            .then(channel => DBUtils.addChannel(channel.id, channel.guild.id, categoryId).then(() => channel));
     }
 }
 
