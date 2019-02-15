@@ -26,6 +26,13 @@ DBUtils.getChannels().then((newChannels) => {
     process.exit(2);
 });
 
+client.on('error', (error) => {
+    console.error('There was some kind of error.');
+    console.error(error);
+});
+
+client.on('debug', info => console.warn(`DEBUG: ${info}`));
+
 client.on('ready', () => {
     console.log('Bot running...');
 });
@@ -77,7 +84,5 @@ client.on('message', async (message) => {
 });
 
 client.on('disconnect', () => client.login(discord.token));
-
-client.on('error', console.error);
 
 client.login(discord.token);

@@ -1,5 +1,6 @@
 const TriviaService = require('../services/trivia.class');
 const DBUtils = require('../helpers/database_utilities.class');
+const embedColor = require('../constants/embeds').color;
 
 const emojis = {
     0: '🇦',
@@ -35,17 +36,42 @@ class Start {
     async initializeChannel() {
         try {
             const channel = await DBUtils.getChannel(this.channel.id);
+
             const categories = await TriviaService.getCategories();
-            const category = categories.find(({ id }) => id === channel.triviaCategoryId);
+            this.category = categories.find(({ id }) => id === channel.triviaCategoryId);
+
             const messages = await this.channel.fetchMessages();
+
             this.roundId = await DBUtils.addRound(this.channel.id);
             messages.deleteAll();
-            // eslint-disable-next-line max-len
-            this.message = await this.channel.send(`Thanks for starting a round of trivia.\n\nThe round will end after 20 questions. Questions will be in the category: ${category.name}. You will have 15 seconds to answer each question. All questions are multiple choice. You can answer a question by using the reaction that corresponds to your choice\n\nThe round will start in 1 minute.`);
-            this.questions = await TriviaService.getQuestions(category.id);
+            this.questions = await TriviaService.getQuestions(this.category.id);
+            const embed = {
+                color: embedColor,
+                fields: [
+                    {
+                        name: 'Category',
+                        value: this.category.name,
+                    },
+                    {
+                        name: '# of Questions',
+                        value: this.questions.length,
+                    },
+                    {
+                        name: 'How-to Play',
+                        // eslint-disable-next-line max-len
+                        value: 'You will have 15 seconds to answer each question. You can answer a question by using the reaction that corresponds to your choice.',
+                    },
+                ],
+                footer: {
+                    text: 'First question in 60 seconds',
+                },
+                title: 'Thanks for starting a round of trivia.',
+            };
+            this.message = await this.channel.send(undefined, { embed });
             return Promise.resolve();
         } catch (error) {
             console.error('There was an error initializing a channel for a round of trivia.');
+            console.error(error);
             throw new Error('Error initializing a channel for a round of trivia');
         }
     }
@@ -58,14 +84,25 @@ class Start {
 
     askQuestion() {
         const question = this.questions[this.currentQuestion];
-        let text = `Question #${this.currentQuestion + 1}\n\n${question.text}\n`;
+        const embed = {
+            color: embedColor,
+            description: '',
+            footer: {
+                text: `Question ${this.currentQuestion + 1} of ${this.questions.length} | ${this.category.name}`,
+            },
+            title: question.text,
+        };
 
         for (let index = 0; index < question.answers.length; index += 1) {
-            text += `\n${emojis[index]} ${question.answers[index].text}`;
+            embed.description += `${emojis[index]} ${question.answers[index].text}`;
+
+            if (index !== question.answers.length - 1) {
+                embed.description += '\n';
+            }
         }
 
         return this.message.clearReactions()
-            .then(() => this.message.edit(text)
+            .then(() => this.message.edit(undefined, { embed })
                 .then(() => {
                     const reactWith = [];
 
@@ -105,11 +142,11 @@ class Start {
 
     questionResults(reactions) {
         this.message.clearReactions();
+
         const correctAnswer = {
             index: this.questions[this.currentQuestion].answers.findIndex(answer => answer.correct),
         };
         correctAnswer.text = this.questions[this.currentQuestion].answers[correctAnswer.index].text;
-        let resultText = `The correct answer is ${emojis[correctAnswer.index]}, ${correctAnswer.text}\n`;
 
         reactions.forEach((reaction) => {
             let answerCount = { total: 1, correct: 0, username: reaction.user.username };
@@ -138,11 +175,22 @@ class Start {
             }, 15000);
         }
 
-        resultText += this.scoreboardText();
-        return this.message.edit(resultText);
+        let embedFooterText = this.currentQuestion + 1 === this.questions.length ? '' : 'Next question in 10 seconds | ';
+        embedFooterText += this.category.name;
+
+        const embed = {
+            color: embedColor,
+            fields: [this.scoreboardField()],
+            footer: {
+                text: embedFooterText,
+            },
+            title: `The correct answer is, ${emojis[correctAnswer.index]} ${correctAnswer.text}`,
+        };
+
+        return this.message.edit(undefined, { embed });
     }
 
-    scoreboardText() {
+    scoreboardField() {
         const scores = [];
         this.answerCounts.forEach(value => scores.push(value));
         scores.sort((scoreA, scoreB) => {
@@ -154,23 +202,30 @@ class Start {
 
             return 0;
         });
-        let scoreboardText = '\nSCOREBOARD';
-        scoreboardText = scores.reduce((text, score) => `${text}\n${score.username}: ${score.correct}`, scoreboardText);
 
-        return scoreboardText;
+        const scoreboardText = scores.reduce((text, score) => `${text}${score.username}: **${score.correct}**\n`, '');
+
+        return { name: 'SCOREBOARD', value: scoreboardText || 'You\'re not even going to guess?' };
     }
 
     end() {
-        let messageText = `Thanks for playing.\n\nTotal questions this round: ${this.currentQuestion + 1}\n`;
-        messageText += this.scoreboardText();
-
         this.answerCounts.forEach((count, key) => {
             DBUtils.addScore({
                 userId: key, total: count.total, correct: count.correct, roundId: this.roundId,
             });
         });
 
-        this.message.edit(messageText);
+        const embed = {
+            color: embedColor,
+            description: 'Type `?start` to start another round of trivia.',
+            fields: [this.scoreboardField()],
+            footer: {
+                text: `${this.questions.length} Questions | ${this.category.name}`,
+            },
+            title: 'Thanks for playing.',
+        };
+
+        this.message.edit(undefined, { embed });
     }
 }
 
